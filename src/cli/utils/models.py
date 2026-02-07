@@ -2,7 +2,8 @@
 """Data models for CLI interactions"""
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
+from src.core.command import Parameter, Example
 
 
 @dataclass
@@ -20,3 +21,16 @@ class ExampleDetails:
     input: str
     output: str
     description: Optional[str] = None
+
+
+@dataclass
+class CommandReviewData:
+    """Command review data for confirmation panel"""
+    tool: str
+    id: str
+    name: str
+    command: str
+    explanation: str
+    parameters: List[Parameter]
+    examples: List[Example]
+    tags: List[str]

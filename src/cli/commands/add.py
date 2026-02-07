@@ -2,7 +2,7 @@
 """Add command for creating new commands interactively"""
 
 import click
-from src.cli.utils import InteractivePrompts
+from src.cli.utils import InteractivePrompts, CommandReviewData
 from src.core.command import Command, Parameter, Example
 from src.utils import load_config, get_tag_suggestions
 
@@ -78,18 +78,18 @@ def add(manager):
     )
     
     # Step 7: Review and confirm
-    command_data = {
-        'tool': tool_name,
-        'id': command.id,
-        'name': command.name,
-        'command': command.command,
-        'explanation': command.explanation,
-        'parameters': command.parameters,
-        'examples': command.examples,
-        'tags': command.tags
-    }
+    review_data = CommandReviewData(
+        tool=tool_name,
+        id=command.id,
+        name=command.name,
+        command=command.command,
+        explanation=command.explanation,
+        parameters=command.parameters,
+        examples=command.examples,
+        tags=command.tags
+    )
     
-    if prompts.review_and_confirm(command_data):
+    if prompts.review_and_confirm(review_data):
         # Save command
         tool.add_command(command)
         click.echo(f"\n✅ Command '{tool_name}:{command.id}' saved successfully!")
