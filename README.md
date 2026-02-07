@@ -49,9 +49,13 @@ htb gen nmap:basic-scan -p target=10.10.10.5
 - `data/commands/` - YAML command database
 - `config.yaml` - Configuration file
 
+## Example Workflow
+
+See [docs/WORKFLOW.md](docs/WORKFLOW.md) for a typical pentesting workflow and usage examples.
+
 ## Development Status
 
-**Current Phase:** Phase 1 - Core Foundation
+**Current Phase:** Phase 6 - Polish & Documentation
 
 See [SPEC.md](SPEC.md) for detailed technical specification.
 
