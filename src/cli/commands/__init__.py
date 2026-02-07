@@ -7,6 +7,7 @@ from .search import search_commands
 from .gen import gen_command
 from .delete import delete_command
 from .edit import edit_command
+from .tool import tool_group
 
 __all__ = [
     'add',
@@ -16,4 +17,5 @@ __all__ = [
     'gen_command',
     'delete_command',
     'edit_command',
+    'tool_group',
 ]
