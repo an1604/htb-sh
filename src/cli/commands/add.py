@@ -8,25 +8,36 @@ from src.utils import load_config, get_tag_suggestions
 
 
 @click.command()
+@click.argument('tool_name', required=False)
 @click.pass_obj
-def add(manager):
-    """Add a new command interactively"""
+def add(manager, tool_name: str):
+    """
+    Add a new command interactively.
+
+    Examples:
+        htb add           # Select tool, then add command
+        htb add nmap      # Add command to nmap (skip tool selection)
+    """
     prompts = InteractivePrompts()
+
+    # Step 1: Get tool (select or from argument)
+    if tool_name:
+        tool = manager.get_tool(tool_name)
+        if not tool:
+            click.echo(f"❌ Tool '{tool_name}' not found.")
+            return
+    else:
+        tools = manager.list_tools()
+        if not tools:
+            click.echo("❌ No tools available. Please register tools first.")
+            return
+        tool_name = prompts.select_tool(tools)
+        tool = manager.get_tool(tool_name)
     
-    # Step 1: Select tool
-    tools = manager.list_tools()
-    
-    if not tools:
-        click.echo("❌ No tools available. Please register tools first.")
-        return
-    
-    tool_name = prompts.select_tool(tools)
-    tool = manager.get_tool(tool_name)
-    
-    if not tool:
-        click.echo(f"❌ Tool '{tool_name}' not found.")
-        return
-    
+        if not tool:
+            click.echo(f"❌ Tool '{tool_name}' not found.")
+            return
+
     # Step 2: Get command details
     cmd_details = prompts.input_command_details()
     
