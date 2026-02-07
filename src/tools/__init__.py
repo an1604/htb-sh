@@ -1,3 +1,7 @@
 """Concrete tool implementations."""
 
-__all__ = []
+from .nmap_tool import NmapTool
+
+__all__ = [
+    'NmapTool',
+]
