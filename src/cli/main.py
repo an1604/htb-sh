@@ -5,7 +5,7 @@ from src.core.storage import Storage
 from src.core.command_manager import CommandManager
 from src.tools import NmapTool, SMBTool, NetcatTool
 from src.utils import load_config, get_data_dir
-from src.cli.commands import add
+from src.cli.commands import add, list_commands
 
 
 # Global command manager instance
@@ -62,6 +62,7 @@ def test(manager):
 
 # Register add command
 cli.add_command(add)
+cli.add_command(list_commands)
 
 
 if __name__ == '__main__':
