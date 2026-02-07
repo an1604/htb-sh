@@ -24,11 +24,13 @@ def get_manager() -> CommandManager:
         storage = Storage(data_dir)
         _manager = CommandManager(storage)
         
-        # Register all tools
+        # Register static tools
         _manager.register_tool(NmapTool)
         _manager.register_tool(SMBTool)
         _manager.register_tool(NetcatTool)
-    
+        # Load dynamic tools from YAML (user-added via tool add)
+        _manager.load_dynamic_tools()
+
     return _manager
 
 

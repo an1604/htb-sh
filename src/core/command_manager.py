@@ -2,6 +2,7 @@
 from typing import List, Dict, Optional, Type
 from .base_tool import BaseTool
 from .storage import Storage
+from src.tools.dynamic_tool import DynamicTool
 
 
 class CommandManager:
@@ -18,6 +19,23 @@ class CommandManager:
         """Register a tool class"""
         tool = tool_class(self.storage)
         self._tools[tool.name] = tool
+
+    def register_dynamic_tool(self, name: str, description: str,
+                             category: str = "misc") -> None:
+        """Register a dynamic tool (user-added via tool add)"""
+        tool = DynamicTool(self.storage, name, description, category)
+        self._tools[name] = tool
+
+    def load_dynamic_tools(self, exclude: List[str] = None) -> None:
+        """Load tools from YAML files that are not already registered"""
+        exclude = exclude or []
+        for name in self.storage.list_tool_files():
+            if name in self._tools or name in exclude:
+                continue
+            meta = self.storage.load_tool_metadata(name)
+            desc = meta.get('description', '')
+            cat = meta.get('category', 'misc')
+            self.register_dynamic_tool(name, desc, cat)
     
     def get_tool(self, tool_name: str) -> Optional[BaseTool]:
         """Get tool by name"""
