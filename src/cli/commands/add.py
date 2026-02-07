@@ -3,7 +3,8 @@
 
 import click
 from src.cli.utils import InteractivePrompts
-from src.core.command import Command
+from src.core.command import Command, Parameter, Example
+from src.utils import load_config, get_tag_suggestions
 
 
 @click.command()
@@ -29,7 +30,7 @@ def add(manager):
     # Step 2: Get command details
     cmd_details = prompts.input_command_details()
     
-    # Step 3: Extract parameter placeholders from command template
+    # Step 3: Extract and configure parameters
     temp_command = Command(
         id=cmd_details.id,
         name=cmd_details.name,
@@ -38,13 +39,60 @@ def add(manager):
     )
     
     placeholders = temp_command.get_parameter_placeholders()
+    parameters = []
     
-    # Show detected parameters (for now, just display them)
     if placeholders:
-        click.echo(f"\n✓ Detected parameters: {', '.join(placeholders)}")
+        click.echo(f"\n✓ Detected {len(placeholders)} parameter(s): {', '.join(placeholders)}")
+        for param_name in placeholders:
+            param = prompts.configure_parameter(param_name)
+            parameters.append(param)
     
-    # For this basic version, we'll just save without configuring parameters
-    # Parameters, tags, and examples will be added in next steps
+    # Step 4: Get tags
+    config = load_config()
+    tag_suggestions = get_tag_suggestions(config)
+    tags = prompts.input_tags(tag_suggestions)
     
-    click.echo(f"\n✓ Command '{tool_name}:{cmd_details.id}' created successfully!")
-    click.echo("  (Note: Full interactive flow with parameters, tags, and examples coming next)")
+    # Step 5: Add examples (optional, can add multiple)
+    examples = []
+    while True:
+        example_data = prompts.add_example()
+        if example_data:
+            example = Example(
+                input=example_data.input,
+                output=example_data.output,
+                description=example_data.description
+            )
+            examples.append(example)
+        else:
+            break
+    
+    # Step 6: Build complete command
+    command = Command(
+        id=cmd_details.id,
+        name=cmd_details.name,
+        command=cmd_details.command,
+        explanation=cmd_details.explanation,
+        parameters=parameters,
+        examples=examples,
+        tags=tags
+    )
+    
+    # Step 7: Review and confirm
+    command_data = {
+        'tool': tool_name,
+        'id': command.id,
+        'name': command.name,
+        'command': command.command,
+        'explanation': command.explanation,
+        'parameters': command.parameters,
+        'examples': command.examples,
+        'tags': command.tags
+    }
+    
+    if prompts.review_and_confirm(command_data):
+        # Save command
+        tool.add_command(command)
+        click.echo(f"\n✅ Command '{tool_name}:{command.id}' saved successfully!")
+    else:
+        click.echo("\n❌ Command not saved.")
+
