@@ -2,8 +2,10 @@
 """Show command for displaying command details"""
 
 import click
-from rich.console import Console
+from rich.console import Console, Group
 from rich.panel import Panel
+from rich.syntax import Syntax
+from rich.text import Text
 from src.cli.utils.constants import (
     SHOW_TOOL_LINE,
     SHOW_ID_LINE,
@@ -20,8 +22,9 @@ console = Console()
 
 @click.command(name='show')
 @click.argument('command_ref', required=True)
+@click.option('--highlight', '-H', is_flag=True, help='Apply syntax highlighting to command')
 @click.pass_obj
-def show_command(manager, command_ref: str):
+def show_command(manager, command_ref: str, highlight: bool):
     """
     Show detailed information about a command.
     
@@ -51,49 +54,56 @@ def show_command(manager, command_ref: str):
         return
     
     # Display command details
-    _display_command_details(tool_name, command)
+    _display_command_details(tool_name, command, highlight)
 
 
-def _display_command_details(tool_name: str, command):
+def _display_command_details(tool_name: str, command, highlight: bool = False):
     """Display command details in a formatted panel"""
-    # Build content
-    content_lines = [
+    # Top section (tool, id, name, command label)
+    top_lines = [
         SHOW_TOOL_LINE.format(tool_name),
         SHOW_ID_LINE.format(command.id),
         SHOW_NAME_LINE.format(command.name),
         "",
         SHOW_COMMAND_LABEL,
-        SHOW_COMMAND_VALUE.format(command.command),
+    ]
+
+    # Bottom section (explanation, params, tags, examples)
+    bottom_lines = [
         "",
         SHOW_EXPLANATION_LABEL,
         SHOW_EXPLANATION_VALUE.format(command.explanation),
     ]
-    
-    # Add parameters if any
     if command.parameters:
-        content_lines.append("")
-        content_lines.append(f"[bold]Parameters:[/bold] {len(command.parameters)}")
+        bottom_lines.append("")
+        bottom_lines.append(f"[bold]Parameters:[/bold] {len(command.parameters)}")
         for param in command.parameters:
             req_marker = "*" if param.required else ""
             default_text = f" (default: {param.default})" if param.default else ""
-            content_lines.append(f"  • {param.name}{req_marker}: {param.description}{default_text}")
-    
-    # Add tags if any
+            bottom_lines.append(f"  • {param.name}{req_marker}: {param.description}{default_text}")
     if command.tags:
-        content_lines.append("")
-        content_lines.append(f"[bold]Tags:[/bold] {', '.join(command.tags)}")
-    
-    # Add examples if any
+        bottom_lines.append("")
+        bottom_lines.append(f"[bold]Tags:[/bold] {', '.join(command.tags)}")
     if command.examples:
-        content_lines.append("")
-        content_lines.append(f"[bold]Examples:[/bold] {len(command.examples)}")
+        bottom_lines.append("")
+        bottom_lines.append(f"[bold]Examples:[/bold] {len(command.examples)}")
         for i, example in enumerate(command.examples, 1):
-            content_lines.append(f"  [cyan]Example {i}:[/cyan]")
-            content_lines.append(f"    Input: {example.input}")
+            bottom_lines.append(f"  [cyan]Example {i}:[/cyan]")
+            bottom_lines.append(f"    Input: {example.input}")
             if example.description:
-                content_lines.append(f"    Description: {example.description}")
-    
-    # Display panel
-    content = "\n".join(content_lines)
+                bottom_lines.append(f"    Description: {example.description}")
+
+    # Build content: plain text or with highlighted command
+    if highlight:
+        command_block = Syntax(command.command, "bash", theme="monokai")
+        content = Group(
+            Text("\n".join(top_lines)),
+            command_block,
+            Text("\n".join(bottom_lines)),
+        )
+    else:
+        top_lines.append(SHOW_COMMAND_VALUE.format(command.command))
+        content = "\n".join(top_lines + bottom_lines)
+
     panel = Panel(content, title=PANEL_TITLE_COMMAND.format(command.name), border_style="cyan")
     console.print(panel)
