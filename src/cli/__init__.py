@@ -1,3 +1,8 @@
 """CLI interface modules."""
 
-__all__ = []
+from .main import cli, get_manager
+
+__all__ = [
+    'cli',
+    'get_manager',
+]

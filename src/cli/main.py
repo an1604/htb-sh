@@ -1,0 +1,61 @@
+# src/cli/main.py
+import click
+from pathlib import Path
+from src.core.storage import Storage
+from src.core.command_manager import CommandManager
+from src.tools import NmapTool, SMBTool, NetcatTool
+from src.utils import load_config, get_data_dir
+
+
+# Global command manager instance
+_manager = None
+
+
+def get_manager() -> CommandManager:
+    """Get or create the global CommandManager instance"""
+    global _manager
+    if _manager is None:
+        # Load configuration
+        config = load_config()
+        data_dir = get_data_dir(config)
+        
+        # Initialize storage and command manager
+        storage = Storage(data_dir)
+        _manager = CommandManager(storage)
+        
+        # Register all tools
+        _manager.register_tool(NmapTool)
+        _manager.register_tool(SMBTool)
+        _manager.register_tool(NetcatTool)
+    
+    return _manager
+
+
+@click.group()
+@click.version_option(version="1.0.0")
+def cli():
+    """
+    HTB Command Automation Tool
+    
+    A CLI tool for managing and executing pentesting commands.
+    """
+    pass
+
+
+@cli.command()
+def test():
+    """Test command to verify tool registration"""
+    manager = get_manager()
+    tools = manager.list_tools()
+    
+    click.echo("\n✓ HTB Command Automation Tool initialized successfully!\n")
+    click.echo(f"Registered tools: {len(tools)}\n")
+    
+    for tool in tools:
+        click.echo(f"  • {tool['name']:<10} [{tool['category']:<15}] - {tool['description']}")
+    
+    click.echo()
+
+
+if __name__ == '__main__':
+    cli()
