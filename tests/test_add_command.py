@@ -6,6 +6,7 @@ from click.testing import CliRunner
 from unittest.mock import Mock, patch
 from src.cli.main import cli
 from src.cli.utils.models import CommandDetails
+from src.core.command import Parameter
 
 
 class TestAddCommand:
@@ -27,26 +28,39 @@ class TestAddCommand:
         )
     
     @patch('src.cli.commands.add.InteractivePrompts')
-    def test_add_command_basic_flow(self, mock_prompts_class, runner, mock_command_details):
+    @patch('src.cli.commands.add.load_config')
+    @patch('src.cli.commands.add.get_tag_suggestions')
+    def test_add_command_basic_flow(self, mock_get_tags, mock_load_config, mock_prompts_class, runner, mock_command_details):
         """Test basic add command flow"""
         # Setup mocks
         mock_prompts = Mock()
         mock_prompts_class.return_value = mock_prompts
         mock_prompts.select_tool.return_value = "nmap"
         mock_prompts.input_command_details.return_value = mock_command_details
+        mock_prompts.configure_parameter.return_value = Parameter(
+            name="target",
+            description="Target IP",
+            required=True,
+            default=None
+        )
+        mock_prompts.input_tags.return_value = ["test", "scanning"]
+        mock_prompts.add_example.return_value = None  # No examples
+        mock_prompts.review_and_confirm.return_value = True  # User confirms
+        
+        mock_get_tags.return_value = ["test", "scanning"]
+        mock_load_config.return_value = {}
         
         # Run command
         result = runner.invoke(cli, ['add'])
         
         # Assertions
         assert result.exit_code == 0
-        assert "test-scan" in result.output
-        assert "Detected parameters: target" in result.output
-        assert "created successfully" in result.output
+        assert "saved successfully" in result.output
         
         # Verify mocks were called
         mock_prompts.select_tool.assert_called_once()
         mock_prompts.input_command_details.assert_called_once()
+        mock_prompts.review_and_confirm.assert_called_once()
     
     @patch('src.cli.commands.add.InteractivePrompts')
     def test_add_command_no_tools_available(self, mock_prompts_class, runner):
@@ -68,7 +82,9 @@ class TestAddCommand:
         assert "not found" in result.output
     
     @patch('src.cli.commands.add.InteractivePrompts')
-    def test_add_command_detects_multiple_parameters(self, mock_prompts_class, runner):
+    @patch('src.cli.commands.add.load_config')
+    @patch('src.cli.commands.add.get_tag_suggestions')
+    def test_add_command_detects_multiple_parameters(self, mock_get_tags, mock_load_config, mock_prompts_class, runner):
         """Test that multiple parameters are detected"""
         mock_prompts = Mock()
         mock_prompts_class.return_value = mock_prompts
@@ -82,15 +98,30 @@ class TestAddCommand:
         )
         mock_prompts.input_command_details.return_value = cmd_details
         
+        # Mock parameter configuration for each detected parameter
+        mock_prompts.configure_parameter.side_effect = [
+            Parameter(name="target", description="Target", required=True),
+            Parameter(name="ports", description="Ports", required=False),
+            Parameter(name="options", description="Options", required=False),
+        ]
+        mock_prompts.input_tags.return_value = []
+        mock_prompts.add_example.return_value = None
+        mock_prompts.review_and_confirm.return_value = True
+        
+        mock_get_tags.return_value = []
+        mock_load_config.return_value = {}
+        
         result = runner.invoke(cli, ['add'])
         
         assert result.exit_code == 0
-        assert "target" in result.output
-        assert "ports" in result.output
-        assert "options" in result.output
+        assert "3 parameter(s)" in result.output
+        # Verify configure_parameter was called 3 times
+        assert mock_prompts.configure_parameter.call_count == 3
     
     @patch('src.cli.commands.add.InteractivePrompts')
-    def test_add_command_no_parameters(self, mock_prompts_class, runner):
+    @patch('src.cli.commands.add.load_config')
+    @patch('src.cli.commands.add.get_tag_suggestions')
+    def test_add_command_no_parameters(self, mock_get_tags, mock_load_config, mock_prompts_class, runner):
         """Test add command with no parameters in template"""
         mock_prompts = Mock()
         mock_prompts_class.return_value = mock_prompts
@@ -103,11 +134,19 @@ class TestAddCommand:
             explanation="Simple hardcoded scan"
         )
         mock_prompts.input_command_details.return_value = cmd_details
+        mock_prompts.input_tags.return_value = []
+        mock_prompts.add_example.return_value = None
+        mock_prompts.review_and_confirm.return_value = True
+        
+        mock_get_tags.return_value = []
+        mock_load_config.return_value = {}
         
         result = runner.invoke(cli, ['add'])
         
         assert result.exit_code == 0
-        assert "created successfully" in result.output
+        assert "saved successfully" in result.output
+        # configure_parameter should not be called
+        mock_prompts.configure_parameter.assert_not_called()
     
     def test_add_command_exists_in_cli(self, runner):
         """Test that add command is registered in CLI"""
@@ -117,15 +156,24 @@ class TestAddCommand:
         assert "add" in result.output.lower()
     
     @patch('src.cli.commands.add.InteractivePrompts')
-    def test_add_command_displays_success_message(self, mock_prompts_class, runner, mock_command_details):
+    @patch('src.cli.commands.add.load_config')
+    @patch('src.cli.commands.add.get_tag_suggestions')
+    def test_add_command_displays_success_message(self, mock_get_tags, mock_load_config, mock_prompts_class, runner, mock_command_details):
         """Test that success message is displayed"""
         mock_prompts = Mock()
         mock_prompts_class.return_value = mock_prompts
         mock_prompts.select_tool.return_value = "smb"
         mock_prompts.input_command_details.return_value = mock_command_details
+        mock_prompts.configure_parameter.return_value = Parameter(name="target", description="Target", required=True)
+        mock_prompts.input_tags.return_value = []
+        mock_prompts.add_example.return_value = None
+        mock_prompts.review_and_confirm.return_value = True
+        
+        mock_get_tags.return_value = []
+        mock_load_config.return_value = {}
         
         result = runner.invoke(cli, ['add'])
         
         assert result.exit_code == 0
         assert "smb:test-scan" in result.output
-        assert "✓" in result.output or "created successfully" in result.output
+        assert "✅" in result.output or "saved successfully" in result.output
