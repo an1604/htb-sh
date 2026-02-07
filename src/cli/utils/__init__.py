@@ -1,3 +1,7 @@
 """CLI utility modules."""
 
-__all__ = []
+from .prompts import InteractivePrompts
+
+__all__ = [
+    'InteractivePrompts',
+]
