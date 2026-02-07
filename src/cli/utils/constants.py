@@ -45,6 +45,16 @@ REVIEW_PANEL_TEMPLATE = """[yellow]Tool:[/yellow] {tool}
 
 # Panel titles
 PANEL_TITLE_SUMMARY = "Command Summary"
+PANEL_TITLE_COMMAND = "Command: {}"
+
+# Show command display templates
+SHOW_TOOL_LINE = "[bold]Tool:[/bold] {}"
+SHOW_ID_LINE = "[bold]ID:[/bold] {}"
+SHOW_NAME_LINE = "[bold]Name:[/bold] {}"
+SHOW_COMMAND_LABEL = "[bold]Command:[/bold]"
+SHOW_COMMAND_VALUE = "  {}"
+SHOW_EXPLANATION_LABEL = "[bold]Explanation:[/bold]"
+SHOW_EXPLANATION_VALUE = "  {}"
 
 # Misc
 TAG_SUGGESTIONS_PREFIX = "  Suggestions: "

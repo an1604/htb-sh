@@ -4,6 +4,16 @@
 import click
 from rich.console import Console
 from rich.panel import Panel
+from src.cli.utils.constants import (
+    SHOW_TOOL_LINE,
+    SHOW_ID_LINE,
+    SHOW_NAME_LINE,
+    SHOW_COMMAND_LABEL,
+    SHOW_COMMAND_VALUE,
+    SHOW_EXPLANATION_LABEL,
+    SHOW_EXPLANATION_VALUE,
+    PANEL_TITLE_COMMAND,
+)
 
 console = Console()
 
@@ -48,15 +58,15 @@ def _display_command_details(tool_name: str, command):
     """Display command details in a formatted panel"""
     # Build content
     content_lines = [
-        f"[bold]Tool:[/bold] {tool_name}",
-        f"[bold]ID:[/bold] {command.id}",
-        f"[bold]Name:[/bold] {command.name}",
+        SHOW_TOOL_LINE.format(tool_name),
+        SHOW_ID_LINE.format(command.id),
+        SHOW_NAME_LINE.format(command.name),
         "",
-        f"[bold]Command:[/bold]",
-        f"  {command.command}",
+        SHOW_COMMAND_LABEL,
+        SHOW_COMMAND_VALUE.format(command.command),
         "",
-        f"[bold]Explanation:[/bold]",
-        f"  {command.explanation}",
+        SHOW_EXPLANATION_LABEL,
+        SHOW_EXPLANATION_VALUE.format(command.explanation),
     ]
     
     # Add parameters if any
@@ -85,5 +95,5 @@ def _display_command_details(tool_name: str, command):
     
     # Display panel
     content = "\n".join(content_lines)
-    panel = Panel(content, title=f"Command: {command.name}", border_style="cyan")
+    panel = Panel(content, title=PANEL_TITLE_COMMAND.format(command.name), border_style="cyan")
     console.print(panel)
