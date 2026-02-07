@@ -2,7 +2,10 @@
 
 import click
 from rich.console import Console
+from rich.prompt import Prompt
 from rich.table import Table
+
+from src.utils import load_config
 
 console = Console()
 
@@ -50,18 +53,33 @@ def tool_list(manager, category):
 
 
 @tool_group.command(name='add')
-@click.argument('name')
-@click.option('--description', '-d', required=True, help='Tool description')
+@click.argument('name', required=False)
+@click.option('--description', '-d', help='Tool description')
 @click.option('--category', '-c', default='misc',
               help='Tool category (default: misc)')
 @click.pass_obj
 def tool_add(manager, name: str, description: str, category: str):
     """
-    Add a new tool (quick mode).
+    Add a new tool (interactive or quick mode).
 
     Examples:
-        htb tool add gobuster --description "Directory bruster" --category web
+        htb tool add                           # Interactive prompts
+        htb tool add gobuster -d "Dir bruster" -c web
     """
+    # Interactive: prompt for missing values
+    interactive = not name or not description
+    if not name:
+        name = Prompt.ask("[cyan]Tool name[/cyan]")
+    if not description:
+        description = Prompt.ask("[cyan]Description[/cyan]")
+    if interactive:
+        config = load_config()
+        categories = config.get('categories', ['misc'])
+        console.print(f"[dim]Categories: {', '.join(categories)}[/dim]")
+        cat_input = Prompt.ask("[cyan]Category[/cyan]", default="misc")
+        if cat_input:
+            category = cat_input
+
     if manager.get_tool(name):
         console.print(f"[bold red]Error: Tool '{name}' already exists.[/bold red]")
         return
