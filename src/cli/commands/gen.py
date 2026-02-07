@@ -3,10 +3,39 @@
 
 import click
 from rich.console import Console
+from rich.prompt import Prompt
 
 from src.utils import load_config
 
 console = Console()
+
+
+def _prompt_for_params(command) -> dict:
+    """Interactively prompt for each parameter and return params dict."""
+    params = {}
+    # Use command.parameters if available, else extract placeholders from template
+    param_specs = command.parameters if command.parameters else []
+    placeholders = command.get_parameter_placeholders()
+
+    for name in placeholders:
+        spec = next((p for p in param_specs if p.name == name), None)
+        required = spec.required if spec else True
+        default = spec.default if spec else ""
+
+        if required:
+            value = Prompt.ask(f"[bold]->[/bold] [cyan]{name}[/cyan]")
+            if not value:
+                console.print(f"[bold red]Error: '{name}' is required.[/bold red]")
+                return None
+            params[name] = value
+        else:
+            value = Prompt.ask(
+                f"[bold]->[/bold] [cyan]{name}[/cyan] (optional, press Enter to skip)",
+                default=default or ""
+            )
+            if value:
+                params[name] = value
+    return params
 
 
 @click.command(name='gen')
@@ -32,25 +61,32 @@ def gen_command(manager, command_ref: str, params_list: tuple, no_copy: bool, pr
         console.print("[bold red]Error: Invalid format. Use 'tool:command-id' (e.g., 'nmap:basic-scan')[/bold red]")
         return
 
-    # Build params dict from -p key=value
-    params = {}
-    for item in params_list:
-        if '=' in item:
-            key, _, value = item.partition('=')
-            params[key.strip()] = value.strip()
-        else:
-            console.print(f"[bold red]Error: Invalid param '{item}'. Use key=value format.[/bold red]")
-            return
-
-    # Validate tool and command exist
+    # Validate tool and command exist first
     tool_name, command_id = command_ref.split(':', 1)
     tool = manager.get_tool(tool_name)
     if not tool:
         console.print(f"[bold red]Error: Tool '{tool_name}' not found.[/bold red]")
         return
-    if not tool.get_command(command_id):
+    command = tool.get_command(command_id)
+    if not command:
         console.print(f"[bold red]Error: Command '{command_id}' not found in tool '{tool_name}'.[/bold red]")
         return
+
+    # Build params: from -p flags or interactive prompts
+    params = {}
+    if params_list:
+        for item in params_list:
+            if '=' in item:
+                key, _, value = item.partition('=')
+                params[key.strip()] = value.strip()
+            else:
+                console.print(f"[bold red]Error: Invalid param '{item}'. Use key=value format.[/bold red]")
+                return
+    else:
+        # Interactive: prompt for each parameter
+        params = _prompt_for_params(command)
+        if params is None:
+            return
 
     # Generate command
     try:
