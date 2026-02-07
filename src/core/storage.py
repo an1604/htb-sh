@@ -46,16 +46,33 @@ class Storage:
     def tool_exists(self, tool_name: str) -> bool:
         """Check if tool YAML file exists"""
         return self.get_tool_file_path(tool_name).exists()
+
+    def list_tool_files(self):
+        """List all tool names that have YAML files"""
+        return [
+            p.stem for p in self.data_dir.glob("*.yaml")
+        ]
+
+    def load_tool_metadata(self, tool_name: str) -> dict:
+        """Load tool metadata (description, category) from YAML"""
+        file_path = self.get_tool_file_path(tool_name)
+        if not file_path.exists():
+            return {}
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+        return data or {}
     
-    def create_tool_file(self, tool_name: str, description: str = "") -> None:
+    def create_tool_file(self, tool_name: str, description: str = "",
+                        category: str = "misc") -> None:
         """Create empty YAML file for new tool"""
         file_path = self.get_tool_file_path(tool_name)
-        
+
         data = {
             'tool': tool_name,
             'description': description,
+            'category': category,
             'commands': []
         }
-        
+
         with open(file_path, 'w', encoding='utf-8') as f:
             yaml.dump(data, f, default_flow_style=False, allow_unicode=True)

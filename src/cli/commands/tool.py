@@ -49,6 +49,28 @@ def tool_list(manager, category):
     console.print(table)
 
 
+@tool_group.command(name='add')
+@click.argument('name')
+@click.option('--description', '-d', required=True, help='Tool description')
+@click.option('--category', '-c', default='misc',
+              help='Tool category (default: misc)')
+@click.pass_obj
+def tool_add(manager, name: str, description: str, category: str):
+    """
+    Add a new tool (quick mode).
+
+    Examples:
+        htb tool add gobuster --description "Directory bruster" --category web
+    """
+    if manager.get_tool(name):
+        console.print(f"[bold red]Error: Tool '{name}' already exists.[/bold red]")
+        return
+
+    manager.storage.create_tool_file(name, description, category)
+    manager.register_dynamic_tool(name, description, category)
+    console.print(f"[green]Added tool: {name}[/green]")
+
+
 @tool_group.command(name='categories')
 @click.pass_obj
 def tool_categories(manager):
