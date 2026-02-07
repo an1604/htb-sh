@@ -45,15 +45,18 @@ class CommandManager:
         categories = set(tool.category for tool in self._tools.values())
         return sorted(categories)
     
-    def search_all(self, query: str = None, tags: List[str] = None, 
-                   category: str = None) -> Dict[str, List]:
+    def search_all(self, query: str = None, tags: List[str] = None,
+                   category: str = None, tool: str = None) -> Dict[str, List]:
         """Search across all tools"""
         results = {}
         for tool_name, tool in self._tools.items():
+            # Filter by tool if specified
+            if tool and tool_name != tool:
+                continue
             # Filter by category if specified
             if category and tool.category != category:
                 continue
-            
+
             commands = tool.search_commands(query, tags)
             if commands:
                 results[tool_name] = commands
