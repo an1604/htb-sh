@@ -14,8 +14,9 @@ console = Console()
 @click.option('-p', '--param', 'params_list', multiple=True,
               help='Parameter as key=value (e.g., -p target=10.10.10.5)')
 @click.option('--no-copy', is_flag=True, help='Do not copy generated command to clipboard')
+@click.option('--print-only', is_flag=True, help='Print command only (no copy, minimal output)')
 @click.pass_obj
-def gen_command(manager, command_ref: str, params_list: tuple, no_copy: bool):
+def gen_command(manager, command_ref: str, params_list: tuple, no_copy: bool, print_only: bool):
     """
     Generate a command with parameters.
     
@@ -54,17 +55,20 @@ def gen_command(manager, command_ref: str, params_list: tuple, no_copy: bool):
     # Generate command
     try:
         generated = manager.generate_command(command_ref, params)
-        console.print(f"\n[bold green]{generated}[/bold green]\n")
 
-        # Copy to clipboard unless --no-copy
-        if not no_copy:
-            config = load_config()
-            if config.get('clipboard_enabled', True):
-                try:
-                    import pyperclip
-                    pyperclip.copy(generated)
-                    console.print("[green]Copied to clipboard.[/green]")
-                except Exception:
-                    console.print("[yellow]Could not copy to clipboard.[/yellow]")
+        if print_only:
+            click.echo(generated)
+        else:
+            console.print(f"\n[bold green]{generated}[/bold green]\n")
+            # Copy to clipboard unless --no-copy
+            if not no_copy:
+                config = load_config()
+                if config.get('clipboard_enabled', True):
+                    try:
+                        import pyperclip
+                        pyperclip.copy(generated)
+                        console.print("[green]Copied to clipboard.[/green]")
+                    except Exception:
+                        console.print("[yellow]Could not copy to clipboard.[/yellow]")
     except ValueError as e:
         console.print(f"[bold red]Error: {e}[/bold red]")
