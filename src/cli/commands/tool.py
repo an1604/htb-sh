@@ -47,3 +47,24 @@ def tool_list(manager, category):
         )
 
     console.print(table)
+
+
+@tool_group.command(name='categories')
+@click.pass_obj
+def tool_categories(manager):
+    """
+    List all tool categories.
+
+    Examples:
+        htb tool categories
+    """
+    categories = manager.get_categories()
+
+    if not categories:
+        console.print("[yellow]No categories found.[/yellow]")
+        return
+
+    console.print("\n[bold cyan]Categories:[/bold cyan]")
+    for cat in categories:
+        console.print(f"  [yellow]•[/yellow] {cat}")
+    console.print()
