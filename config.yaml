@@ -1,0 +1,36 @@
+# config.yaml
+data_dir: "data/commands"
+
+# Tool categories
+categories:
+  - reconnaissance
+  - scanning
+  - enumeration
+  - exploitation
+  - post-exploitation
+  - cracking
+  - web
+  - wireless
+  - misc
+
+# Common tag suggestions
+tag_suggestions:
+  - basic
+  - advanced
+  - aggressive
+  - stealth
+  - fast
+  - comprehensive
+  - tcp
+  - udp
+  - version
+  - os-detection
+  - script
+  - authentication
+  - brute-force
+  - file-transfer
+
+# CLI settings
+clipboard_enabled: true
+syntax_highlighting: true
+confirm_delete: true
