@@ -2,6 +2,7 @@
 
 import click
 from rich.console import Console
+from rich.prompt import Prompt
 
 from src.core.command import Command
 
@@ -40,17 +41,22 @@ def edit_command(manager, command_ref: str, explanation: str):
         console.print(f"[bold red]Error: Command '{command_id}' not found in tool '{tool_name}'.[/bold red]")
         return
 
-    # Check at least one field to edit
-    if not explanation:
-        console.print("[yellow]No edit options specified. Use --explanation 'text' to update.[/yellow]")
-        return
+    # Get new value: from flag or interactive prompt
+    if explanation:
+        new_explanation = explanation
+    else:
+        console.print(f"\n[bold]Current explanation:[/bold] {command.explanation}\n")
+        new_explanation = Prompt.ask(
+            "[cyan]New explanation[/cyan] (press Enter to keep)",
+            default=command.explanation
+        )
 
     # Build updated command
     updated = Command(
         id=command.id,
         name=command.name,
         command=command.command,
-        explanation=explanation,
+        explanation=new_explanation,
         parameters=command.parameters,
         examples=command.examples,
         tags=command.tags,
