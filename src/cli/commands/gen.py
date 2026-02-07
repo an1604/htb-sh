@@ -4,6 +4,8 @@
 import click
 from rich.console import Console
 
+from src.utils import load_config
+
 console = Console()
 
 
@@ -11,8 +13,9 @@ console = Console()
 @click.argument('command_ref', required=True)
 @click.option('-p', '--param', 'params_list', multiple=True,
               help='Parameter as key=value (e.g., -p target=10.10.10.5)')
+@click.option('--no-copy', is_flag=True, help='Do not copy generated command to clipboard')
 @click.pass_obj
-def gen_command(manager, command_ref: str, params_list: tuple):
+def gen_command(manager, command_ref: str, params_list: tuple, no_copy: bool):
     """
     Generate a command with parameters.
     
@@ -52,5 +55,16 @@ def gen_command(manager, command_ref: str, params_list: tuple):
     try:
         generated = manager.generate_command(command_ref, params)
         console.print(f"\n[bold green]{generated}[/bold green]\n")
+
+        # Copy to clipboard unless --no-copy
+        if not no_copy:
+            config = load_config()
+            if config.get('clipboard_enabled', True):
+                try:
+                    import pyperclip
+                    pyperclip.copy(generated)
+                    console.print("[green]Copied to clipboard.[/green]")
+                except Exception:
+                    console.print("[yellow]Could not copy to clipboard.[/yellow]")
     except ValueError as e:
         console.print(f"[bold red]Error: {e}[/bold red]")
