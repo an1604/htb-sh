@@ -97,9 +97,9 @@ def _display_command_details(tool_name: str, command, highlight: bool = False):
     if highlight:
         command_block = Syntax(command.command, "bash", theme="monokai")
         content = Group(
-            Text("\n".join(top_lines)),
+            Text.from_markup("\n".join(top_lines)),
             command_block,
-            Text("\n".join(bottom_lines)),
+            Text.from_markup("\n".join(bottom_lines)),
         )
     else:
         top_lines.append(SHOW_COMMAND_VALUE.format(command.command))
