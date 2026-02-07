@@ -136,19 +136,19 @@ class InteractivePrompts:
         )
     
     @staticmethod
-    def review_and_confirm(command_data: Dict) -> bool:
+    def review_and_confirm(review_data) -> bool:
         """Display command summary and ask for confirmation"""
         console.print(MSG_REVIEW_COMMAND)
         
         panel_content = REVIEW_PANEL_TEMPLATE.format(
-            tool=command_data.get('tool', 'N/A'),
-            id=command_data['id'],
-            name=command_data['name'],
-            command=command_data['command'],
-            explanation=command_data['explanation'],
-            param_count=len(command_data.get('parameters', [])),
-            example_count=len(command_data.get('examples', [])),
-            tags=TAG_SEPARATOR.join(command_data.get('tags', []))
+            tool=review_data.tool,
+            id=review_data.id,
+            name=review_data.name,
+            command=review_data.command,
+            explanation=review_data.explanation,
+            param_count=len(review_data.parameters),
+            example_count=len(review_data.examples),
+            tags=TAG_SEPARATOR.join(review_data.tags)
         )
         
         console.print(Panel(panel_content, title=PANEL_TITLE_SUMMARY))
