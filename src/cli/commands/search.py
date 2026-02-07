@@ -12,32 +12,39 @@ console = Console()
 @click.argument('query', required=False)
 @click.option('--tag', 'tags_str', default=None, help='Filter by tags (comma-separated)')
 @click.option('--tool', 'tool_name', default=None, help='Search in specific tool only')
+@click.option('--category', 'category', default=None, help='Filter by tool category')
 @click.pass_obj
-def search_commands(manager, query: str, tags_str: str, tool_name: str):
+def search_commands(manager, query: str, tags_str: str, tool_name: str, category: str):
     """
     Search commands by keyword and/or tags.
     
     Searches in command name, explanation, and command template.
-    Use --tag to filter by tags, --tool to limit to one tool.
+    Use --tag, --tool, --category to filter.
     
     Examples:
         htb search "version detection"
         htb search --tag enumeration
+        htb search --category reconnaissance
         htb search --tool nmap --tag scanning
     """
     # Require at least one filter
     tags = [t.strip() for t in tags_str.split(',')] if tags_str else None
-    if not query and not tags:
-        console.print("[bold red]Error: Provide a search query or --tag filter.[/bold red]")
+    if not query and not tags and not category:
+        console.print("[bold red]Error: Provide a search query, --tag, or --category filter.[/bold red]")
         return
-    
+
+    # Validate category exists if specified
+    if category and category not in manager.get_categories():
+        console.print(f"[bold red]Error: Category '{category}' not found.[/bold red]")
+        return
+
     # Validate tool exists if specified
     if tool_name and not manager.get_tool(tool_name):
         console.print(f"[bold red]Error: Tool '{tool_name}' not found.[/bold red]")
         return
-    
+
     # Search across all tools
-    results = manager.search_all(query=query or None, tags=tags, tool=tool_name)
+    results = manager.search_all(query=query or None, tags=tags, tool=tool_name, category=category)
     
     # Flatten results: list of (tool_name, command) tuples
     commands_with_tools = []
@@ -54,6 +61,8 @@ def search_commands(manager, query: str, tags_str: str, tool_name: str):
             parts.append(f"tags: {', '.join(tags)}")
         if tool_name:
             parts.append(f"tool: {tool_name}")
+        if category:
+            parts.append(f"category: {category}")
         msg = ", ".join(parts) if parts else "criteria"
         console.print(f"[yellow]No commands found matching {msg}.[/yellow]")
         return
@@ -66,6 +75,8 @@ def search_commands(manager, query: str, tags_str: str, tool_name: str):
         title_parts.append(f"tags: {', '.join(tags)}")
     if tool_name:
         title_parts.append(f"tool: {tool_name}")
+    if category:
+        title_parts.append(f"category: {category}")
     title = f"Search results for {', '.join(title_parts)}"
     table = Table(title=title, show_header=True, header_style="bold cyan")
     table.add_column("Tool", style="green", width=12)
