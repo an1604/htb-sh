@@ -24,7 +24,7 @@ def list_commands(manager, tool_name: str):
         # List commands for specific tool
         tool = manager.get_tool(tool_name)
         if not tool:
-            console.print(f"[bold red]❌ Tool '{tool_name}' not found.[/bold red]")
+            console.print(f"[bold red]Error: Tool '{tool_name}' not found.[/bold red]")
             return
         
         commands = tool.get_all_commands()
