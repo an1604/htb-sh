@@ -5,6 +5,7 @@ from src.core.storage import Storage
 from src.core.command_manager import CommandManager
 from src.tools import NmapTool, SMBTool, NetcatTool
 from src.utils import load_config, get_data_dir
+from src.cli.commands import add
 
 
 # Global command manager instance
@@ -33,19 +34,21 @@ def get_manager() -> CommandManager:
 
 @click.group()
 @click.version_option(version="1.0.0")
-def cli():
+@click.pass_context
+def cli(ctx):
     """
     HTB Command Automation Tool
     
     A CLI tool for managing and executing pentesting commands.
     """
-    pass
+    # Store manager in context for commands to access
+    ctx.obj = get_manager()
 
 
 @cli.command()
-def test():
+@click.pass_obj
+def test(manager):
     """Test command to verify tool registration"""
-    manager = get_manager()
     tools = manager.list_tools()
     
     click.echo("\n✓ HTB Command Automation Tool initialized successfully!\n")
@@ -55,6 +58,10 @@ def test():
         click.echo(f"  • {tool['name']:<10} [{tool['category']:<15}] - {tool['description']}")
     
     click.echo()
+
+
+# Register add command
+cli.add_command(add)
 
 
 if __name__ == '__main__':
