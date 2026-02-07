@@ -1,3 +1,7 @@
 """CLI command implementations."""
 
-__all__ = []
+from .add import add
+
+__all__ = [
+    'add',
+]
