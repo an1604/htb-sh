@@ -10,14 +10,18 @@ console = Console()
 
 @click.command(name='list')
 @click.argument('tool_name', required=False)
+@click.option('--category', '-c', help='Filter by tool category')
+@click.option('--detailed', '-d', is_flag=True, help='Show parameters')
 @click.pass_obj
-def list_commands(manager, tool_name: str):
+def list_commands(manager, tool_name: str, category: str, detailed: bool):
     """
     List all commands or commands for a specific tool.
-    
+
     Examples:
         htb list           # List all commands
         htb list nmap      # List nmap commands only
+        htb list --category scanning
+        htb list nmap --detailed
     """
     # Get commands
     if tool_name:
@@ -31,14 +35,22 @@ def list_commands(manager, tool_name: str):
         title = f"Commands for {tool.name}"
     else:
         # List all commands from all tools
-        tools = manager.list_tools()
+        tools = manager.list_tools(category=category)
         commands = []
         for tool_info in tools:
             tool = manager.get_tool(tool_info['name'])
             if tool:
-                commands.extend(tool.get_all_commands())
-        
-        title = "All Commands"
+                for cmd in tool.get_all_commands():
+                    commands.append((tool.name, cmd))
+        title = "All Commands" + (f" ({category})" if category else "")
+
+    # Normalize: convert to (tool_name, cmd) pairs for unified handling
+    if tool_name:
+        command_pairs = [(tool_name, cmd) for cmd in commands]
+        title = title
+    else:
+        command_pairs = commands
+        commands = [c for _, c in command_pairs]
     
     # Display commands
     if not commands:
@@ -51,21 +63,20 @@ def list_commands(manager, tool_name: str):
     table.add_column("ID", style="yellow", width=20)
     table.add_column("Name", style="bold", width=30)
     table.add_column("Tags", style="dim", width=25)
-    
+    if detailed:
+        table.add_column("Parameters", style="dim", width=30)
+
     # Add rows
-    for cmd in commands:
-        # Get tool name for this command (we need to track it)
-        tool_display = tool_name if tool_name else _get_tool_for_command(manager, cmd)
+    for tool_display, cmd in command_pairs:
         tags_display = ", ".join(cmd.tags[:3]) if cmd.tags else "-"
         if len(cmd.tags) > 3:
             tags_display += "..."
-        
-        table.add_row(
-            tool_display,
-            cmd.id,
-            cmd.name,
-            tags_display
-        )
+
+        row = [tool_display, cmd.id, cmd.name, tags_display]
+        if detailed:
+            params_str = ", ".join(p.name for p in cmd.parameters) if cmd.parameters else "-"
+            row.append(params_str)
+        table.add_row(*row)
     
     console.print(table)
     console.print(f"\n[dim]Total: {len(commands)} command(s)[/dim]")
