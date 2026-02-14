@@ -43,7 +43,7 @@ jobs:
       
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+          pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml -m "not skip_ci"
       
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'

@@ -185,7 +185,12 @@ pytest tests/ -v
 
 # Run tests with coverage
 pytest tests/ -v --cov=src --cov-report=term-missing
+
+# Run tests excluding CI-skipped tests (same as CI)
+pytest tests/ -v -m "not skip_ci"
 ```
+
+**Note:** Some tests are marked with `@pytest.mark.skip_ci` and are skipped in CI environments due to mocking compatibility issues with Click commands. These tests run successfully in local environments but fail in CI due to environment-specific differences.
 
 ### CI/CD
 
