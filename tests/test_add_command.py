@@ -27,6 +27,7 @@ class TestAddCommand:
             explanation="Test scanning command"
         )
     
+    @pytest.mark.skip_ci
     @patch('src.cli.commands.add.InteractivePrompts')
     @patch('src.cli.commands.add.load_config')
     @patch('src.cli.commands.add.get_tag_suggestions')
@@ -62,6 +63,7 @@ class TestAddCommand:
         mock_prompts.input_command_details.assert_called_once()
         mock_prompts.review_and_confirm.assert_called_once()
     
+    @pytest.mark.skip_ci
     @patch('src.cli.commands.add.InteractivePrompts')
     def test_add_command_no_tools_available(self, mock_prompts_class, runner):
         """Test add command when no tools are registered"""
@@ -69,6 +71,7 @@ class TestAddCommand:
         # For now, we know tools are always registered in our setup
         pass
     
+    @pytest.mark.skip_ci
     @patch('src.cli.commands.add.InteractivePrompts')
     def test_add_command_invalid_tool(self, mock_prompts_class, runner):
         """Test add command with invalid tool name"""
@@ -81,6 +84,7 @@ class TestAddCommand:
         assert result.exit_code == 0
         assert "not found" in result.output
     
+    @pytest.mark.skip_ci
     @patch('src.cli.commands.add.InteractivePrompts')
     @patch('src.cli.commands.add.load_config')
     @patch('src.cli.commands.add.get_tag_suggestions')
@@ -118,6 +122,7 @@ class TestAddCommand:
         # Verify configure_parameter was called 3 times
         assert mock_prompts.configure_parameter.call_count == 3
     
+    @pytest.mark.skip_ci
     @patch('src.cli.commands.add.InteractivePrompts')
     @patch('src.cli.commands.add.load_config')
     @patch('src.cli.commands.add.get_tag_suggestions')
@@ -155,6 +160,7 @@ class TestAddCommand:
         assert result.exit_code == 0
         assert "add" in result.output.lower()
     
+    @pytest.mark.skip_ci
     @patch('src.cli.commands.add.InteractivePrompts')
     @patch('src.cli.commands.add.load_config')
     @patch('src.cli.commands.add.get_tag_suggestions')

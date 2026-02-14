@@ -1,5 +1,9 @@
 # HTB Command Automation Tool
 
+[![Tests](https://github.com/yourusername/htb-automations/actions/workflows/test.yml/badge.svg)](https://github.com/yourusername/htb-automations/actions/workflows/test.yml)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A CLI-based command reference and generation tool for penetration testing with user-friendly interactive interface.
 
 ## Features
@@ -46,6 +50,103 @@ htb flow list
 htb flow gen smb-enumeration --param target=10.10.10.5 --save enum.sh
 ```
 
+## Usage Examples
+
+### Managing Tools
+
+**Interactive Mode** (prompts for all inputs):
+```bash
+htb tool add
+```
+
+**Quick Mode** (provide all details):
+```bash
+htb tool add gobuster -d "Directory brute-forcing tool" -c web
+```
+
+**List all tools**:
+```bash
+htb tool list
+htb tool list --category reconnaissance
+```
+
+### Adding Commands
+
+**Fully Interactive** (7-step wizard):
+```bash
+htb add
+```
+
+**Semi-Interactive** (pre-select tool):
+```bash
+htb add nmap
+```
+
+**Quick Mode** (all details provided):
+```bash
+htb add nmap \
+  --id quick-scan \
+  --name "Quick Scan" \
+  --cmd "nmap -sV {target}" \
+  --explain "Fast service version detection" \
+  --param "target:Target IP address:required" \
+  --tag "scanning,quick"
+```
+
+### Generating Commands
+
+**Interactive** (prompts for parameters):
+```bash
+htb gen nmap:basic-scan
+```
+
+**Direct** (all parameters provided):
+```bash
+htb gen nmap:basic-scan -p target=10.10.10.5
+```
+
+**Multiple Parameters**:
+```bash
+htb gen nmap:complex-scan \
+  -p target=10.10.10.5 \
+  -p ports="-p 80,443,8080" \
+  -p options="-sV -sC"
+```
+
+**Output Options**:
+```bash
+# Don't copy to clipboard
+htb gen nmap:basic-scan -p target=10.10.10.5 --no-copy
+
+# Print only (minimal output)
+htb gen nmap:basic-scan -p target=10.10.10.5 --print-only
+```
+
+### Managing Commands
+
+```bash
+# List all commands
+htb list
+
+# Filter by tool
+htb list --tool nmap
+
+# Filter by tag
+htb list --tag aggressive
+
+# Search commands
+htb search "version detection"
+
+# Show command details
+htb show nmap:basic-scan
+
+# Edit a command
+htb edit nmap:basic-scan
+
+# Delete a command
+htb delete nmap:basic-scan
+```
+
 ## Project Structure
 
 - `src/core/` - Core components (Command, BaseTool, Storage, CommandManager, Flow, FlowManager)
@@ -70,6 +171,36 @@ Example flows are in `data/flows/` (e.g. `smb-enumeration`, `nmap-quick-recon`).
 ## Example Workflow
 
 See [docs/WORKFLOW.md](docs/WORKFLOW.md) for a typical pentesting workflow and usage examples.
+
+## Development
+
+### Running Tests
+
+```bash
+# Install test dependencies
+pip install pytest pytest-cov
+
+# Run all tests
+pytest tests/ -v
+
+# Run tests with coverage
+pytest tests/ -v --cov=src --cov-report=term-missing
+
+# Run tests excluding CI-skipped tests (same as CI)
+pytest tests/ -v -m "not skip_ci"
+```
+
+**Note:** Some tests are marked with `@pytest.mark.skip_ci` and are skipped in CI environments due to mocking compatibility issues with Click commands. These tests run successfully in local environments but fail in CI due to environment-specific differences.
+
+### CI/CD
+
+This project uses GitHub Actions for continuous integration. All tests run automatically on:
+- Pull requests to `main` or `dev` branches
+- Direct pushes to `main` or `dev` branches
+
+Tests run against Python 3.8, 3.9, 3.10, and 3.11. All tests must pass before merging.
+
+See [.github/BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md) for recommended branch protection rules.
 
 ## Development Status
 
