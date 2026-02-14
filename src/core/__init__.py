@@ -5,6 +5,8 @@ from .flow import Flow, FlowStep
 from .base_tool import BaseTool
 from .storage import Storage
 from .command_manager import CommandManager
+from .flow_manager import FlowManager
+from .flow_script_generator import FlowScriptGenerator
 
 __all__ = [
     "Command",
@@ -15,5 +17,7 @@ __all__ = [
     "BaseTool",
     "Storage",
     "CommandManager",
+    "FlowManager",
+    "FlowScriptGenerator",
 ]
 

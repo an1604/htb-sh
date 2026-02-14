@@ -4,6 +4,7 @@
 import pytest
 from src.core.storage import Storage
 from src.core.command import Command, Parameter
+from src.core.flow import Flow, FlowStep
 
 
 class TestStorage:
@@ -86,3 +87,76 @@ class TestStorage:
         assert len(loaded) == 2
         assert loaded[0].id == "scan-1"
         assert loaded[1].id == "scan-2"
+
+
+class TestStorageFlows:
+    """Test Storage flow-related methods."""
+
+    def test_get_flows_dir(self, storage):
+        """Test getting flows directory."""
+        flows_dir = storage.get_flows_dir()
+        assert flows_dir.name == "flows"
+        assert flows_dir.exists()
+        assert flows_dir.is_dir()
+
+    def test_get_flow_file_path(self, storage):
+        """Test getting flow file path."""
+        path = storage.get_flow_file_path("my-flow")
+        assert path.name == "my-flow.yaml"
+        assert path.parent == storage.get_flows_dir()
+
+    def test_load_flow_nonexistent(self, storage):
+        """Test loading non-existent flow returns None."""
+        assert storage.load_flow("nonexistent-flow") is None
+
+    def test_save_and_load_flow(self, storage, sample_flow):
+        """Test saving and loading a flow."""
+        storage.save_flow(sample_flow)
+        loaded = storage.load_flow(sample_flow.id)
+        assert loaded is not None
+        assert loaded.id == sample_flow.id
+        assert loaded.name == sample_flow.name
+        assert len(loaded.steps) == 1
+        assert loaded.steps[0].command_ref == sample_flow.steps[0].command_ref
+        assert len(loaded.flow_parameters) == 2
+
+    def test_load_flows_empty(self, storage):
+        """Test load_flows returns empty list when no flows exist."""
+        flows = storage.load_flows()
+        assert flows == []
+
+    def test_load_flows_multiple(self, storage, sample_flow):
+        """Test loading multiple flows."""
+        storage.save_flow(sample_flow)
+        flow2 = Flow(
+            id="other-flow",
+            name="Other",
+            description="Other flow",
+            steps=[],
+            flow_parameters=[],
+        )
+        storage.save_flow(flow2)
+        flows = storage.load_flows()
+        assert len(flows) == 2
+        ids = {f.id for f in flows}
+        assert "smb-enumeration" in ids
+        assert "other-flow" in ids
+
+    def test_delete_flow(self, storage, sample_flow):
+        """Test deleting a flow."""
+        storage.save_flow(sample_flow)
+        assert storage.flow_exists(sample_flow.id)
+        result = storage.delete_flow(sample_flow.id)
+        assert result is True
+        assert not storage.flow_exists(sample_flow.id)
+        assert storage.load_flow(sample_flow.id) is None
+
+    def test_delete_flow_nonexistent(self, storage):
+        """Test delete_flow on non-existent flow returns False."""
+        assert storage.delete_flow("no-such-flow") is False
+
+    def test_flow_exists(self, storage, sample_flow):
+        """Test flow_exists."""
+        assert not storage.flow_exists(sample_flow.id)
+        storage.save_flow(sample_flow)
+        assert storage.flow_exists(sample_flow.id)
