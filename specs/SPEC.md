@@ -889,7 +889,44 @@ htb gen nmap:service-version
 # → ports (optional, press Enter to skip): -p 80,443
 # Generated: nmap -sV 10.10.10.5 -p 80,443
 # ✓ Copied to clipboard!
+
+# Store generated command as full command (after generation)
+htb gen nmap:version-script-scan -p target=10.10.10.5 -p ports=80,443
+# Generated: nmap -sV -sC -p 80,443 10.10.10.5
+# Store as full command? [y/N]: y
+# Command ID: my-custom-scan
+# Saved as nmap:my-custom-scan
 ```
+
+---
+
+## Command Chaining (Sub-command Composition)
+
+Tools like nmap support many options (-sV, -sC, -p, --script). Commands can be built from **sub-commands** (composable flags):
+
+- **Sub-commands:** Reusable flags defined per tool (e.g. `-sV`, `-sC`, `-p {ports}`)
+- **Composition:** A command selects which sub-commands to include
+- **Store as full command:** After generating, user can save the result as a new command in the tool's list
+
+**Flow:**
+1. User has a command with sub-commands (e.g. version-script-scan with sV, sC, ports)
+2. `htb gen nmap:version-script-scan` prompts for params, generates full command
+3. After output: "Store as full command? [y/N]" – if yes, prompt for id/name and save
+4. Saved command is a regular full template (stored in commands list for reuse)
+
+See [docs/COMMAND_CHAINING_PLAN.md](docs/COMMAND_CHAINING_PLAN.md) for full implementation plan.
+
+---
+
+## Flows (Multi-Step Workflows)
+
+**Flows** are sequences of commands that can be generated as executable scripts (bash or Python). The tool does not execute flows; it only generates script content.
+
+- **Storage:** Flow definitions live in `data/flows/` (one YAML per flow).
+- **CLI:** `htb flow list`, `htb flow show <id>`, `htb flow gen <id> --param ... [--save file]`, `htb flow add/edit/delete/search`.
+- **Script generation:** `htb flow gen` produces a script with all steps; use `--preview` for the command list only, or `--save script.sh` to write to a file.
+
+See [specs/FLOWS_SPEC.md](FLOWS_SPEC.md) for the full flows specification.
 
 ---
 
@@ -1009,54 +1046,54 @@ pyperclip>=1.8.2      # Clipboard operations
 ## Implementation Plan
 
 ### Phase 1: Core Foundation (Days 1-2)
-- [ ] Project structure setup
-- [ ] `Command` data model with full serialization
-- [ ] `BaseTool` abstract class with category support
-- [ ] `Storage` handler with YAML I/O
-- [ ] `CommandManager` with category filtering
-- [ ] Configuration file loader
-- [ ] Basic tests for core models
+- [x] Project structure setup
+- [x] `Command` data model with full serialization
+- [x] `BaseTool` abstract class with category support
+- [x] `Storage` handler with YAML I/O
+- [x] `CommandManager` with category filtering
+- [x] Configuration file loader
+- [x] Basic tests for core models
 
 ### Phase 2: Tool Registry & Concrete Tools (Day 3)
-- [ ] Implement 3 concrete tools with categories:
+- [x] Implement 3 concrete tools with categories:
   - NmapTool (scanning)
   - SMBTool (enumeration)
   - NetcatTool (misc)
-- [ ] Create initial command database (3-5 commands per tool)
-- [ ] Tool registration in CLI
+- [x] Create initial command database (3-5 commands per tool)
+- [x] Tool registration in CLI
 
 ### Phase 3: Interactive CLI - Add Command (Days 4-5)
-- [ ] `InteractivePrompts` utility class with Rich
-- [ ] `htb add` - fully interactive flow:
+- [x] `InteractivePrompts` utility class with Rich
+- [x] `htb add` - fully interactive flow:
   - Tool selection with category display
   - Command details input
   - Parameter auto-detection and configuration
   - Tag input with suggestions
   - Example input (multi-line support)
   - Review and confirmation
-- [ ] Input validation at each step
-- [ ] Beautiful Rich-formatted output
+- [x] Input validation at each step
+- [x] Beautiful Rich-formatted output
 
 ### Phase 4: CLI - List, Show, Search (Day 6)
-- [ ] `htb list` with category filtering and detailed view
-- [ ] `htb show` with syntax highlighting
-- [ ] `htb search` with multi-criteria filtering
-- [ ] Rich tables and panels for all outputs
+- [x] `htb list` with category filtering and detailed view
+- [x] `htb show` with syntax highlighting
+- [x] `htb search` with multi-criteria filtering
+- [x] Rich tables and panels for all outputs
 
 ### Phase 5: CLI - Generate & Tool Management (Day 7)
-- [ ] `htb gen` with interactive parameter prompts
-- [ ] Clipboard integration
-- [ ] `htb tool list` with category grouping
-- [ ] `htb tool add` for creating new tools
-- [ ] `htb edit` for updating existing commands
-- [ ] `htb delete` with confirmation
+- [x] `htb gen` with interactive parameter prompts
+- [x] Clipboard integration
+- [x] `htb tool list` with category grouping
+- [x] `htb tool add` for creating new tools
+- [x] `htb edit` for updating existing commands
+- [x] `htb delete` with confirmation
 
 ### Phase 6: Polish & Documentation (Day 8)
-- [ ] Error handling with helpful messages
-- [ ] `--help` text for all commands
-- [ ] README with screenshots/examples
-- [ ] setup.py for installation (`pip install -e .`)
-- [ ] Example workflow documentation
+- [x] Error handling with helpful messages
+- [x] `--help` text for all commands
+- [x] README with screenshots/examples
+- [x] setup.py for installation (`pip install -e .`)
+- [x] Example workflow documentation
 
 ---
 
@@ -1150,7 +1187,7 @@ The `execute_command()` method in `BaseTool` is already stubbed for future imple
 - Export/import command sets
 - Integration with note-taking tools (Obsidian, Notion)
 - Web UI using Flask/FastAPI
-- Command chaining/workflows
+- Command chaining with sub-commands (see Command Chaining section above)
 - Variable templates (save commonly used IPs)
 - HTB API integration for machine notes
 - Bash/Zsh completion scripts
