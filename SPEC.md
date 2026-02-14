@@ -889,7 +889,32 @@ htb gen nmap:service-version
 # → ports (optional, press Enter to skip): -p 80,443
 # Generated: nmap -sV 10.10.10.5 -p 80,443
 # ✓ Copied to clipboard!
+
+# Store generated command as full command (after generation)
+htb gen nmap:version-script-scan -p target=10.10.10.5 -p ports=80,443
+# Generated: nmap -sV -sC -p 80,443 10.10.10.5
+# Store as full command? [y/N]: y
+# Command ID: my-custom-scan
+# Saved as nmap:my-custom-scan
 ```
+
+---
+
+## Command Chaining (Sub-command Composition)
+
+Tools like nmap support many options (-sV, -sC, -p, --script). Commands can be built from **sub-commands** (composable flags):
+
+- **Sub-commands:** Reusable flags defined per tool (e.g. `-sV`, `-sC`, `-p {ports}`)
+- **Composition:** A command selects which sub-commands to include
+- **Store as full command:** After generating, user can save the result as a new command in the tool's list
+
+**Flow:**
+1. User has a command with sub-commands (e.g. version-script-scan with sV, sC, ports)
+2. `htb gen nmap:version-script-scan` prompts for params, generates full command
+3. After output: "Store as full command? [y/N]" – if yes, prompt for id/name and save
+4. Saved command is a regular full template (stored in commands list for reuse)
+
+See [docs/COMMAND_CHAINING_PLAN.md](docs/COMMAND_CHAINING_PLAN.md) for full implementation plan.
 
 ---
 
@@ -1150,7 +1175,7 @@ The `execute_command()` method in `BaseTool` is already stubbed for future imple
 - Export/import command sets
 - Integration with note-taking tools (Obsidian, Notion)
 - Web UI using Flask/FastAPI
-- Command chaining/workflows
+- Command chaining with sub-commands (see Command Chaining section above)
 - Variable templates (save commonly used IPs)
 - HTB API integration for machine notes
 - Bash/Zsh completion scripts
