@@ -20,8 +20,8 @@ def temp_dir():
 
 @pytest.fixture
 def storage(temp_dir):
-    """Create a Storage instance with temporary directory"""
-    return Storage(temp_dir)
+    """Create a Storage instance with temporary directory (commands and flows under temp_dir)"""
+    return Storage(temp_dir, flows_dir=temp_dir / "flows")
 
 
 @pytest.fixture
@@ -66,4 +66,40 @@ def sample_command(sample_parameter):
         parameters=[sample_parameter],
         tags=["basic", "scanning"],
         notes="Default scan without root privileges"
+    )
+
+
+# --- Flow fixtures ---
+@pytest.fixture
+def sample_flow_step():
+    """Create a sample FlowStep for testing"""
+    from src.core.flow import FlowStep
+    return FlowStep(
+        id="list-shares",
+        command_ref="smbclient:lists-the-available-smb-shares",
+        parameters={"host": "{target}"},
+        description="List all SMB shares",
+        notes="Run first",
+    )
+
+
+@pytest.fixture
+def sample_flow(sample_flow_step):
+    """Create a sample Flow for testing"""
+    from src.core.flow import Flow
+    from src.core.command import Parameter
+    return Flow(
+        id="smb-enumeration",
+        name="SMB Enumeration",
+        description="List shares and connect",
+        steps=[sample_flow_step],
+        flow_parameters=[
+            Parameter(name="target", description="Target IP", required=True),
+            Parameter(name="username", description="Username", required=False, default="guest"),
+        ],
+        tags=["enumeration", "smb"],
+        notes="Test flow",
+        default_format="bash",
+        add_error_handling=True,
+        add_comments=True,
     )
