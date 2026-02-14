@@ -2,7 +2,6 @@
 
 [![Tests](https://github.com/yourusername/htb-automations/actions/workflows/test.yml/badge.svg)](https://github.com/yourusername/htb-automations/actions/workflows/test.yml)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A CLI-based command reference and generation tool for penetration testing with user-friendly interactive interface.
 
