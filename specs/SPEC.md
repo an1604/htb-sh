@@ -918,6 +918,18 @@ See [docs/COMMAND_CHAINING_PLAN.md](docs/COMMAND_CHAINING_PLAN.md) for full impl
 
 ---
 
+## Flows (Multi-Step Workflows)
+
+**Flows** are sequences of commands that can be generated as executable scripts (bash or Python). The tool does not execute flows; it only generates script content.
+
+- **Storage:** Flow definitions live in `data/flows/` (one YAML per flow).
+- **CLI:** `htb flow list`, `htb flow show <id>`, `htb flow gen <id> --param ... [--save file]`, `htb flow add/edit/delete/search`.
+- **Script generation:** `htb flow gen` produces a script with all steps; use `--preview` for the command list only, or `--save script.sh` to write to a file.
+
+See [specs/FLOWS_SPEC.md](FLOWS_SPEC.md) for the full flows specification.
+
+---
+
 ## Data Format
 
 ### YAML Structure
